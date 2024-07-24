@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>יומולדת ליעלי</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Varela Round', sans-serif;
+            background: linear-gradient(135deg, #EC2166, #FF6B98);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            direction: rtl;
+            touch-action: manipulation;
+        }
+        #game-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        #game-area {
+            width: 100%;
+            height: calc(100vh - 120px);
+            background: linear-gradient(to bottom, #FFE5ED, #FFC0D5);
+            position: relative;
+            overflow: hidden;
+        }
+        #yaeli {
+            width: 60px;
+            height: 60px;
+            background: url('yaeli.png') no-repeat center center;
+            background-size: contain;
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+        }
+        .obstacle {
+            font-size: 50px;
+            position: absolute;
+            left: 0;
+            bottom: 20px;
+        }
+        .circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 20px;
+            left: 100%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+        }
+        .red { background: radial-gradient(circle, #FF5E5B, #FF3E3D); }
+        .green { background: radial-gradient(circle, #4CAF50, #45A049); }
+        .yellow { background: radial-gradient(circle, #FFC107, #FFB300); }
+        button {
+            font-size: 20px;
+            padding: 15px 30px;
+            margin: 15px;
+            cursor: pointer;
+            background-color: #EC2166;
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 12px rgba(236, 33, 102, 0.3);
+        }
+        button:hover, button:active {
+            background-color: #D91A5B;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(236, 33, 102, 0.4);
+        }
+        #score, #high-score {
+            font-size: 24px;
+            color: #FFFFFF;
+            margin: 10px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        h1, h2 {
+            color: #FFFFFF;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 36px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        #end-screen p {
+            font-size: 24px;
+            color: #FFFFFF;
+            margin: 15px 0;
+            text-align: center;
+        }
+        #start-screen, #end-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(236, 33, 102, 0.9);
+            z-index: 10;
+        }
+        #game-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="start-screen">
+            <h1>🍰 יומולדת ליעלי 🍰</h1>
+            <button id="start-button">התחל משחק</button>
+            <button id="instructions-button">הוראות</button>
+        </div>
+        <div id="game-screen" style="display: none;">
+            <div id="game-info">
+                <div id="score">נקודות: <span id="current-score">0</span></div>
+                <div id="high-score">שיא: <span id="highest-score">0</span></div>
+            </div>
+            <div id="game-area">
+                <div id="yaeli"></div>
+            </div>
+        </div>
+        <div id="end-screen" style="display: none;">
+            <h2>סוף המשחק</h2>
+            <p id="final-score">נקודות סופיות: <span></span></p>
+            <p id="end-high-score">שיא נקודות: <span></span></p>
+            <button id="try-again-button">נסה שוב</button>
+        </div>
+    </div>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const gameContainer = document.getElementById('game-container');
+
+            const startScreen = document.getElementById('start-screen');
+
+            const gameScreen = document.getElementById('game-screen');
+
+            const endScreen = document.getElementById('end-screen');
+
+            const startButton = document.getElementById('start-button');
+
+            const instructionsButton = document.getElementById('instructions-button');
+
+            const tryAgainButton = document.getElementById('try-again-button');
+
+            const currentScoreElement = document.getElementById('current-score');
+
+            const highestScoreElement = document.getElementById('highest-score');
+
+            const finalScoreElement = document.getElementById('final-score').querySelector('span');
+
+            const endHighScoreElement = document.getElementById('end-high-score').querySelector('span');
+
+            const gameArea = document.getElementById('game-area');
+
+            const yaeli = document.getElementById('yaeli');
+
+
+
+            let isJumping = false;
+
+            let canDoubleJump = false;
+
+            let score = 0;
+
+            let highScore = 0;
+
+            let gameSpeed = 3;
+
+            let isGameOver = false;
+
+            let gameLoop;
+
+            let jumpVelocity = 0;
+
+            const gravity = 1.5;
+
+            const jumpStrength = 25;
+
+
+
+            const startGame = () => {
+
+                startScreen.style.display = 'none';
+
+                gameScreen.style.display = 'block';
+
+                endScreen.style.display = 'none';
+
+                score = 0;
+
+                gameSpeed = 3;
+
+                isGameOver = false;
+
+                updateScore();
+
+                gameLoop = requestAnimationFrame(updateGame);
+
+                yaeli.style.bottom = '20px';
+
+            };
+
+
+
+            const updateGame = () => {
+
+                if (!isGameOver) {
+
+                    score++;
+
+                    updateScore();
+
+                    moveObstacles();
+
+                    moveCircles();
+
+                    updateYaeli();
+
+                    checkCollisions();
+
+                    increaseSpeed();
+
+                    gameLoop = requestAnimationFrame(updateGame);
+
+                }
+
+            };
+
+
+
+            const updateYaeli = () => {
+
+                let yaeliBottom = parseInt(window.getComputedStyle(yaeli).getPropertyValue('bottom'));
+
+                if (isJumping) {
+
+                    yaeliBottom += jumpVelocity;
+
+                    jumpVelocity -= gravity;
+
+                    if (yaeliBottom <= 20) {
+
+                        yaeliBottom = 20;
+
+                        isJumping = false;
+
+                        canDoubleJump = false;
+
+                    }
+
+                }
+
+                yaeli.style.bottom = `${yaeliBottom}px`;
+
+            };
+
+
+
+            const endGame = () => {
+
+                isGameOver = true;
+
+                cancelAnimationFrame(gameLoop);
+
+                gameScreen.style.display = 'none';
+
+                endScreen.style.display = 'block';
+
+                finalScoreElement.textContent = score;
+
+                endHighScoreElement.textContent = highScore;
+
+                document.querySelectorAll('.obstacle, .circle').forEach(el => el.remove());
+
+            };
+
+
+
+            const updateScore = () => {
+
+                currentScoreElement.textContent = score;
+
+                if (score > highScore) {
+
+                    highScore = score;
+
+                    highestScoreElement.textContent = highScore;
+
+                }
+
+            };
+
+
+
+            const createObstacle = () => {
+
+                const obstacle = document.createElement('div');
+
+                obstacle.classList.add('obstacle');
+
+                obstacle.textContent = '🍰';
+
+                obstacle.style.left = `${gameArea.offsetWidth}px`;
+
+                obstacle.style.bottom = '20px';
+
+                gameArea.appendChild(obstacle);
+
+            };
+
+
+
+            const moveObstacles = () => {
+
+                document.querySelectorAll('.obstacle').forEach(obstacle => {
+
+                    let obstaclePosition = parseInt(window.getComputedStyle(obstacle).getPropertyValue('left'));
+
+                    if (obstaclePosition < -40) {
+
+                        obstacle.remove();
+
+                    } else {
+
+                        obstacle.style.left = `${obstaclePosition - gameSpeed}px`;
+
+                    }
+
+                });
+
+
+
+                if (Math.random() < 0.003) {
+
+                    createObstacle();
+
+                }
+
+            };
+
+
+
+            const createCircle = () => {
+
+                const circle = document.createElement('div');
+
+                circle.classList.add('circle');
+
+                const colors = ['red', 'green', 'yellow'];
+
+                circle.classList.add(colors[Math.floor(Math.random() * colors.length)]);
+
+                circle.style.left = `${gameArea.offsetWidth}px`;
+
+                circle.style.bottom = '20px';
+
+                gameArea.appendChild(circle);
+
+            };
+
+
+
+            const moveCircles = () => {
+
+                document.querySelectorAll('.circle').forEach(circle => {
+
+                    let circlePosition = parseInt(window.getComputedStyle(circle).getPropertyValue('left'));
+
+                    if (circlePosition < -40) {
+
+                        circle.remove();
+
+                    } else {
+
+                        circle.style.left = `${circlePosition - gameSpeed}px`;
+
+                    }
+
+                });
+
+
+
+                if (Math.random() < 0.004) {
+
+                    createCircle();
+
+                }
+
+            };
+
+
+
+            const checkCollisions = () => {
+
+                const obstacles = document.querySelectorAll('.obstacle');
+
+                const circles = document.querySelectorAll('.circle');
+
+
+
+                obstacles.forEach(obstacle => {
+
+                    if (isColliding(yaeli, obstacle)) {
+
+                        endGame();
+
+                    }
+
+                });
+
+
+
+                circles.forEach(circle => {
+
+                    if (isColliding(yaeli, circle)) {
+
+                        collectCircle(circle);
+
+                    }
+
+                });
+
+            };
+
+
+
+            const isColliding = (a, b) => {
+
+                const aRect = a.getBoundingClientRect();
+
+                const bRect = b.getBoundingClientRect();
+
+                const buffer = 10;
+
+
+
+                return !(
+
+                    aRect.top + aRect.height - buffer < bRect.top ||
+
+                    aRect.top + buffer > bRect.top + bRect.height ||
+
+                    aRect.left + aRect.width - buffer < bRect.left ||
+
+                    aRect.left + buffer > bRect.left + bRect.width
+
+                );
+
+            };
+
+
+
+            const collectCircle = (circle) => {
+
+                if (circle.classList.contains('red')) {
+
+                    score += 10;
+
+                } else if (circle.classList.contains('green')) {
+
+                    score += 20;
+
+                } else if (circle.classList.contains('yellow')) {
+
+                    score += 30;
+
+                }
+
+                circle.remove();
+
+                updateScore();
+
+            };
+
+
+
+            const increaseSpeed = () => {
+
+                if (score % 1000 === 0 && score > 0) {
+
+                    gameSpeed += 0.5;
+
+                }
+
+            };
+
+
+
+            const jump = () => {
+
+                if (!isJumping) {
+
+                    isJumping = true;
+
+                    jumpVelocity = jumpStrength;
+
+                    canDoubleJump = true;
+
+                } else if (canDoubleJump) {
+
+                    jumpVelocity = jumpStrength * 0.8;
+
+                    canDoubleJump = false;
+
+                }
+
+            };
+
+
+
+            startButton.addEventListener('click', startGame);
+
+            tryAgainButton.addEventListener('click', startGame);
+
+            instructionsButton.addEventListener('click', () => alert('קפוץ מעל מכשולים ואסוף כדורים צבעוניים כדי לצבור נקודות! לחץ על רווח או לחץ על המסך כדי לקפוץ. ניתן לבצע קפיצה כפולה!'));
+
+            document.addEventListener('keydown', e => {
+
+                if (e.code === 'Space') {
+
+                    jump();
+
+                }
+
+            });
+
+            gameArea.addEventListener('click', jump);
+
+        });
+
+    </script>
+
+</body>
+</html>
