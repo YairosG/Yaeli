@@ -146,410 +146,210 @@
         </div>
     </div>
     <script>
-
         document.addEventListener('DOMContentLoaded', () => {
-
             const gameContainer = document.getElementById('game-container');
-
             const startScreen = document.getElementById('start-screen');
-
             const gameScreen = document.getElementById('game-screen');
-
             const endScreen = document.getElementById('end-screen');
-
             const startButton = document.getElementById('start-button');
-
             const instructionsButton = document.getElementById('instructions-button');
-
             const tryAgainButton = document.getElementById('try-again-button');
-
             const currentScoreElement = document.getElementById('current-score');
-
             const highestScoreElement = document.getElementById('highest-score');
-
             const finalScoreElement = document.getElementById('final-score').querySelector('span');
-
             const endHighScoreElement = document.getElementById('end-high-score').querySelector('span');
-
             const gameArea = document.getElementById('game-area');
-
             const yaeli = document.getElementById('yaeli');
 
-
-
             let isJumping = false;
-
             let canDoubleJump = false;
-
             let score = 0;
-
             let highScore = 0;
-
             let gameSpeed = 3;
-
             let isGameOver = false;
-
             let gameLoop;
-
             let jumpVelocity = 0;
-
-            const gravity = 1.5;
-
-            const jumpStrength = 25;
-
-
+            const gravity = 0.6;
+            const jumpStrength = 15;
 
             const startGame = () => {
-
                 startScreen.style.display = 'none';
-
                 gameScreen.style.display = 'block';
-
                 endScreen.style.display = 'none';
-
                 score = 0;
-
                 gameSpeed = 3;
-
                 isGameOver = false;
-
                 updateScore();
-
                 gameLoop = requestAnimationFrame(updateGame);
-
                 yaeli.style.bottom = '20px';
-
             };
-
-
 
             const updateGame = () => {
-
                 if (!isGameOver) {
-
                     score++;
-
                     updateScore();
-
                     moveObstacles();
-
                     moveCircles();
-
                     updateYaeli();
-
                     checkCollisions();
-
                     increaseSpeed();
-
                     gameLoop = requestAnimationFrame(updateGame);
-
                 }
-
             };
-
-
 
             const updateYaeli = () => {
-
                 let yaeliBottom = parseInt(window.getComputedStyle(yaeli).getPropertyValue('bottom'));
-
                 if (isJumping) {
-
                     yaeliBottom += jumpVelocity;
-
                     jumpVelocity -= gravity;
-
                     if (yaeliBottom <= 20) {
-
                         yaeliBottom = 20;
-
                         isJumping = false;
-
                         canDoubleJump = false;
-
                     }
-
                 }
-
                 yaeli.style.bottom = `${yaeliBottom}px`;
-
             };
-
-
 
             const endGame = () => {
-
                 isGameOver = true;
-
                 cancelAnimationFrame(gameLoop);
-
                 gameScreen.style.display = 'none';
-
                 endScreen.style.display = 'block';
-
                 finalScoreElement.textContent = score;
-
                 endHighScoreElement.textContent = highScore;
-
                 document.querySelectorAll('.obstacle, .circle').forEach(el => el.remove());
-
             };
-
-
 
             const updateScore = () => {
-
                 currentScoreElement.textContent = score;
-
                 if (score > highScore) {
-
                     highScore = score;
-
                     highestScoreElement.textContent = highScore;
-
                 }
-
             };
-
-
 
             const createObstacle = () => {
-
                 const obstacle = document.createElement('div');
-
                 obstacle.classList.add('obstacle');
-
                 obstacle.textContent = '🍰';
-
                 obstacle.style.left = `${gameArea.offsetWidth}px`;
-
                 obstacle.style.bottom = '20px';
-
                 gameArea.appendChild(obstacle);
-
             };
-
-
 
             const moveObstacles = () => {
-
                 document.querySelectorAll('.obstacle').forEach(obstacle => {
-
-                    let obstaclePosition = parseInt(window.getComputedStyle(obstacle).getPropertyValue('left'));
-
-                    if (obstaclePosition < -40) {
-
+                    let obstaclePosition = parseInt(window.getComputedStyle(obstacle).getPropertyValue('left')); 
+					if (obstaclePosition < -40) {
                         obstacle.remove();
-
                     } else {
-
                         obstacle.style.left = `${obstaclePosition - gameSpeed}px`;
-
                     }
-
                 });
-
-
 
                 if (Math.random() < 0.003) {
-
                     createObstacle();
-
                 }
-
             };
-
-
 
             const createCircle = () => {
-
                 const circle = document.createElement('div');
-
                 circle.classList.add('circle');
-
                 const colors = ['red', 'green', 'yellow'];
-
                 circle.classList.add(colors[Math.floor(Math.random() * colors.length)]);
-
                 circle.style.left = `${gameArea.offsetWidth}px`;
-
                 circle.style.bottom = '20px';
-
                 gameArea.appendChild(circle);
-
             };
-
-
 
             const moveCircles = () => {
-
                 document.querySelectorAll('.circle').forEach(circle => {
-
                     let circlePosition = parseInt(window.getComputedStyle(circle).getPropertyValue('left'));
-
                     if (circlePosition < -40) {
-
                         circle.remove();
-
                     } else {
-
                         circle.style.left = `${circlePosition - gameSpeed}px`;
-
                     }
-
                 });
-
-
 
                 if (Math.random() < 0.004) {
-
                     createCircle();
-
                 }
-
             };
-
-
 
             const checkCollisions = () => {
-
                 const obstacles = document.querySelectorAll('.obstacle');
-
                 const circles = document.querySelectorAll('.circle');
 
-
-
                 obstacles.forEach(obstacle => {
-
                     if (isColliding(yaeli, obstacle)) {
-
                         endGame();
-
                     }
-
                 });
-
-
 
                 circles.forEach(circle => {
-
                     if (isColliding(yaeli, circle)) {
-
                         collectCircle(circle);
-
                     }
-
                 });
-
             };
-
-
 
             const isColliding = (a, b) => {
-
                 const aRect = a.getBoundingClientRect();
-
                 const bRect = b.getBoundingClientRect();
-
                 const buffer = 10;
 
-
-
                 return !(
-
                     aRect.top + aRect.height - buffer < bRect.top ||
-
                     aRect.top + buffer > bRect.top + bRect.height ||
-
                     aRect.left + aRect.width - buffer < bRect.left ||
-
                     aRect.left + buffer > bRect.left + bRect.width
-
                 );
-
             };
-
-
 
             const collectCircle = (circle) => {
-
                 if (circle.classList.contains('red')) {
-
                     score += 10;
-
                 } else if (circle.classList.contains('green')) {
-
                     score += 20;
-
                 } else if (circle.classList.contains('yellow')) {
-
                     score += 30;
-
                 }
-
                 circle.remove();
-
                 updateScore();
-
             };
-
-
 
             const increaseSpeed = () => {
-
                 if (score % 1000 === 0 && score > 0) {
-
                     gameSpeed += 0.5;
-
                 }
-
             };
-
-
 
             const jump = () => {
-
                 if (!isJumping) {
-
                     isJumping = true;
-
                     jumpVelocity = jumpStrength;
-
                     canDoubleJump = true;
-
                 } else if (canDoubleJump) {
-
                     jumpVelocity = jumpStrength * 0.8;
-
                     canDoubleJump = false;
-
                 }
-
             };
 
-
-
             startButton.addEventListener('click', startGame);
-
             tryAgainButton.addEventListener('click', startGame);
-
             instructionsButton.addEventListener('click', () => alert('קפוץ מעל מכשולים ואסוף כדורים צבעוניים כדי לצבור נקודות! לחץ על רווח או לחץ על המסך כדי לקפוץ. ניתן לבצע קפיצה כפולה!'));
 
             document.addEventListener('keydown', e => {
-
                 if (e.code === 'Space') {
-
                     jump();
-
                 }
-
             });
 
             gameArea.addEventListener('click', jump);
-
         });
-
     </script>
-
 </body>
 </html>
+
