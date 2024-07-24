@@ -20,7 +20,7 @@
             align-items: center;
             direction: rtl;
             touch-action: manipulation;
-            overflow: hidden; /* הוספת שורה זו כדי למנוע גלילה */
+            overflow: hidden;
         }
         #game-container {
             width: 100%;
@@ -69,7 +69,7 @@
             padding: 15px 30px;
             margin: 15px;
             cursor: pointer;
-            background-color: #EC2166;
+            background-color: #C21454;
             border: none;
             border-radius: 50px;
             color: white;
@@ -78,7 +78,7 @@
             box-shadow: 0 6px 12px rgba(236, 33, 102, 0.3);
         }
         button:hover, button:active {
-            background-color: #D91A5B;
+            background-color: #A01145;
             transform: translateY(-3px);
             box-shadow: 0 8px 15px rgba(236, 33, 102, 0.4);
         }
@@ -241,8 +241,8 @@
 
             const moveObstacles = () => {
                 document.querySelectorAll('.obstacle').forEach(obstacle => {
-                    let obstaclePosition = parseInt(window.getComputedStyle(obstacle).getPropertyValue('left')); 
-					if (obstaclePosition < -40) {
+                    let obstaclePosition = parseInt(window.getComputedStyle(obstacle).getPropertyValue('left'));
+                    if (obstaclePosition < -40) {
                         obstacle.remove();
                     } else {
                         obstacle.style.left = `${obstaclePosition - gameSpeed}px`;
