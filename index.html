@@ -14,12 +14,13 @@
         body {
             font-family: 'Varela Round', sans-serif;
             background: linear-gradient(135deg, #EC2166, #FF6B98);
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             direction: rtl;
             touch-action: manipulation;
+            overflow: hidden; /* הוספת שורה זו כדי למנוע גלילה */
         }
         #game-container {
             width: 100%;
@@ -142,7 +143,7 @@
             <h2>סוף המשחק</h2>
             <p id="final-score">נקודות סופיות: <span></span></p>
             <p id="end-high-score">שיא נקודות: <span></span></p>
-            <button id="try-again-button">נסה שוב</button>
+            <button id="try-again-button">אכלת יותר מדי עוגות ... לחצו כאן לשחק שוב</button>
         </div>
     </div>
     <script>
@@ -352,4 +353,3 @@
     </script>
 </body>
 </html>
-
